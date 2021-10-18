@@ -1,0 +1,100 @@
+---
+title: "p8105_hw3_jl6048"
+output: github_document
+author: Jinghan Liu
+---
+
+
+
+```{r message=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+library(patchwork)
+```
+
+
+## Problem 1
+
+**How many aisles are there, and which aisles are the most items ordered from?**
+
+* There are 134 aisles in this data set and the most items are ordered from the fresh vegetables and fresh fruits aisles.
+```{r message=FALSE}
+data("instacart")
+instacart_df =
+  instacart %>%
+  janitor::clean_names()%>%
+  count(aisle) %>%
+  arrange(desc(n))
+instacart_df
+```
+
+
+**Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered**
+```{r message=FALSE}
+instacart_df %>%
+  filter(n > 10000) %>%
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, n)) %>%
+   ggplot(aes(x = aisle, y = n)) + 
+  geom_point() + 
+  labs(
+    title = "The number of items ordered in each aisle",
+    x = "aisle name",
+    y = "order numbers",
+    caption = "Data from the instacart") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+
+**Make a table showing the three most popular items**
+
+```{r message=FALSE}
+popitems_df = 
+  instacart %>%
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+	group_by(aisle) %>% 
+	count(product_name) %>% 
+	mutate(rank = min_rank(desc(n))) %>%
+	filter(rank < 4) %>% 
+	arrange(aisle, rank) %>% 
+	knitr::kable()
+popitems_df
+```
+
+
+**Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week;**
+
+```{r message=FALSE}
+meanhour_df =
+  instacart %>%
+  filter(product_name %in% c("Pink Lady Apples","Coffee Ice Cream")) %>%
+  group_by(product_name, order_dow) %>%
+  summarize(mean_hour = mean(order_hour_of_day)) %>%
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour) %>% 
+  rename(
+    sun. = "0", mon. = "1", tue. = "2", 
+    wed. = "3", thu. = "4", fri. = "5", sat. = "6") %>% 
+  knitr::kable()
+ meanhour_df 
+```
+
+**Description**:
+This datasets has `r nrow(instacart)` observations and `r ncol(instacart)` variables.
+
+The key variables are as follows:
+*  `product_name`: name of the product
+*  `aisle`: name of the aisle
+*  `order_dow`: the day of the week on which the order was placed
+*  `order_hour_of_day`: the hour of the day on which the order was placed
+*  `order_id`: order identifier
+*  `product_id`: product identifier
+
+For example, the individual with user id 66177 ordered `r instacart %>% filter(user_id == 66177) %>% summarize(max(add_to_cart_order))` and they are most from the `r instacart %>% filter(user_id == 66177) %>% summarize(max(department))` department. 
+
+
+
+
