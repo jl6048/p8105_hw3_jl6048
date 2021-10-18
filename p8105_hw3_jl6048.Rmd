@@ -97,4 +97,45 @@ For example, the individual with user id 66177 ordered `r instacart %>% filter(u
 
 
 
+## Problem 2
+
+**data cleaning**
+```{r warning=FALSE}
+data("brfss_smart2010")
+brfss_smart=
+  brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  filter(topic == "Overall Health") %>%
+  mutate(
+    response = forcats::fct_relevel(response, c("Excellent", "Very good", "Good", "Fair", "Poor"))) %>%
+  arrange(desc(response))
+brfss_smart
+```
+
+
+**In 2002, which states were observed at 7 or more locations? What about in 2010?**
+```{r}
+states_2002_df =
+  brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  filter(year == 2002) %>%
+  group_by(locationabbr) %>%
+  summarize(
+    country_num = n_distinct(locationdesc)) %>% 
+  filter(country_num >= 7)
+states_2002_df
+
+states_2010_df =
+  brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  filter(year == 2010) %>%
+  group_by(locationabbr) %>%
+  summarize(
+    country_num = n_distinct(locationdesc)) %>% 
+  filter(country_num >= 7)
+states_2010_df
+```
+*solution: 
+In 2002, `r pull(states_2002_df,locationabbr)` were observed at 7 or more locations. 
+In 2010, `r pull(states_2010_df,locationabbr)` were observed at 7 or more locations.
 
