@@ -1,16 +1,14 @@
 ---
 title: "p8105_hw3_jl6048"
-output: github_document
 author: Jinghan Liu
+output: github_document
+date: Octorber 19 2021
 ---
-
 
 
 ```{r message=FALSE}
 library(tidyverse)
 library(p8105.datasets)
-library(ggridges)
-library(patchwork)
 library(readxl)
 
 knitr::opts_chunk$set(
@@ -18,8 +16,7 @@ knitr::opts_chunk$set(
   warning = FALSE,
   fig.width = 8,
   fig.height = 6,
-  out.width = "90%"
-  )
+  out.width = "90%")
 ```
 
 
@@ -27,7 +24,7 @@ knitr::opts_chunk$set(
 
 **How many aisles are there, and which aisles are the most items ordered from?**
 
-* There are 134 aisles in this data set and the most items are ordered from the fresh vegetables and fresh fruits aisles.
+* There are 134 aisles in this data set and the most items are ordered from the fresh vegetables aisles.
 ```{r}
 data("instacart")
 instacart_df =
@@ -168,7 +165,11 @@ excellent_resp =
     title = " Average value over time for states ",
     x = "Year",
     y = "Average%",
-    caption = "Data from BRFSS")
+    caption = "Data from BRFSS") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(
+    breaks = c(10, 15, 20, 25, 30), 
+    limits = c(10, 30))
 excellent_resp
 ```
 *Solution:
@@ -220,7 +221,8 @@ pivot_longer(
     values_to = "activity_amount",
     names_prefix = "activity_") %>%
 mutate(day_type = ifelse(day == "Saturday" | day == "Sunday", "Weekend", "Weekday"))  %>%
-  mutate(day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")))
+  mutate(minute = as.numeric(minute),
+    day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")))
 accel_data
 ```
 *Description:
@@ -228,14 +230,16 @@ The data set contain `r nrow(accel_data)` observations of `r ncol(accel_data)` v
 
 
 
-**aggregate accross minutes to create a total activity variable for each day**
+**aggregate across minutes to create a total activity variable for each day**
 ```{r}
 aggre_table =
   accel_data %>%
-  group_by(week, day, day_id) %>% 
+  group_by(week, day) %>% 
   summarize(sum_day = sum(activity_amount)) %>% 
-select(week, day, sum_day) %>%
-arrange(desc(day)) %>%
+pivot_wider(
+  names_from = "day",
+  values_from = "sum_day") %>% 
+  
 knitr::kable()
 aggre_table
 ```
